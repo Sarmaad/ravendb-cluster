@@ -1,9 +1,7 @@
 #!/bin/bash
-
-# usage: install.sh server_url cert_file cert_password
-
-# Ubuntu 16.x
-# RavenDB 4.0 version 4.0.3-patch-40031
+#usage: install.sh server_url cert_file cert_password
+#Ubuntu 16.x
+#RavenDB 4.0 version 4.0.3-patch-40031
 
 if [[ $UID != 0 ]]; then
     echo "Please run this script with sudo:"
@@ -15,11 +13,11 @@ fi
 args=("$@")
 
 # exit if no args
-if [ $# -eq 0 ]; then
-    echo "No arguments provided"
+if [ $# -ne 3 ]; then
+    echo "you must provide at least 3 arguments"
+    echo "install.sh <ravendb dns> <cert file location> <cert file password>"
     exit 1
 fi
-
 
 # configuration
 RAVENDB_DL_FILE="RavenDB-4.0.3-patch-40031-linux-x64.tar.bz2"
@@ -31,42 +29,58 @@ RAVENDB_GROUP="ravendb"
 RAVENDB_HOME_DIR="/home/ravendb"
 RAVENDB_DATA_DIR="/home/ravendb/data"
 
-RAVENDB_CONF_FILE="settings.json"
 SERVER_URL=${args[0]}
 
 CERT_FILE=${args[1]}
 CERT_PASS=${args[2]}
 
-# create ravendb user to run the service
-useradd -s /usr/sbin/nologin $RAVENDB_USER $RAVENDB_GROUP
+# export these variables for the purpose of templates
+export RAVENDB_USER RAVENDB_HOME_DIR RAVENDB_DATA_DIR SERVER_URL CERT_FILE CERT_PASS
 
-#create home directory
+echo "installing required system packages"
+apt-get -y --no-install-recommends install libunwind8 libicu55 libcurl3 ca-certificates
+
+echo "create $RAVENDB_USER user "
+groupadd $RAVENDB_GROUP
+useradd -s /usr/sbin/nologin -g$RAVENDB_GROUP $RAVENDB_USER
+
+echo "create home directory and set permissions"
 mkdir -v -p $RAVENDB_HOME_DIR
 chmod -R 0755 $RAVENDB_HOME_DIR
 chown -R $RAVENDB_USER:$RAVENDB_GROUP $RAVENDB_HOME_DIR
 
-#create data directory
+echo "create data directory"
 mkdir -v -p $RAVENDB_DATA_DIR
 chmod -R 0700 $RAVENDB_DATA_DIR
 chown -R $RAVENDB_USER:$RAVENDB_GROUP $RAVENDB_DATA_DIR
 
-# switch to ravendb home directory
-cd $RAVENDB_HOME_DIR
+echo "download ravendb install package"
+wget -q --show-progress -P $RAVENDB_HOME_DIR $RAVENDB_DL 
+echo "uncompressing pachage in $RAVENDB_HOME_DIR"
+tar -xf $RAVENDB_HOME_DIR/$RAVENDB_DL_FILE -C $RAVENDB_HOME_DIR
+#remove downloaded package
+rm -f $RAVENDB_HOME_DIR/$RAVENDB_DL_FILE
+chown -R $RAVENDB_USER:$RAVENDB_GROUP $RAVENDB_HOME_DIR/RavenDB
 
-# download ravendb install package and uncompress it
-wget $RAVENDB_DL 
-tar xvf $RAVENDB_DL_FILE
+echo "Creating the settings.json file (if not exists)"
+cat ../settings.json.template | envsubst > $RAVENDB_HOME_DIR/settings.json
+chmod -R 0600 $RAVENDB_HOME_DIR/settings.json
+chown -R $RAVENDB_USER:$RAVENDB_GROUP $RAVENDB_HOME_DIR/settings.json
 
-# build the settings file
-echo "Creating the settings.json file"
+echo "Creating ravendb service file"
+cat ../ravendb.service.template | envsubst > $RAVENDB_HOME_DIR/ravendb.service
+chmod -R 0600 $RAVENDB_HOME_DIR/ravendb.service
+chown -R $RAVENDB_USER:$RAVENDB_GROUP $RAVENDB_HOME_DIR/ravendb.service
 
-touch $RAVENDB_CONF_FILE
-chmod -R 0600 $RAVENDB_CONF_FILE
-chown -R $RAVENDB_USER:$RAVENDB_GROUP $RAVENDB_CONF_FILE
+echo "Copy settings.json to ravendb server directory"
+cp $RAVENDB_HOME_DIR/settings.json $RAVENDB_HOME_DIR/RavenDB/Server/settings.json
 
+echo "Install ravendb service in systemd"
+systemctl enable $RAVENDB_HOME_DIR/ravendb.service
 
-echo "{" >> $RAVENDB_CONF_FILE
-echo "\t\"ServerUrl\"=\"$SERVER_URL\"" >> $RAVENDB_CONF_FILE
-echo "\t\"Setup.Mode\"=\"None\"" >> $RAVENDB_CONF_FILE
-echo "\t\"Setup.Mode\"=\"None\"" >> $RAVENDB_CONF_FILE
-echo "}" >> $RAVENDB_CONF_FILE
+echo "------------------------"
+echo "------------------------"
+echo "Instalation Completed..."
+echo "Test your server by running ravendb: $RAVENDB_HOME_DIR/RavenDB/Server/Raven.Server"
+echo "You may start ravendb service using: systemctl start ravendb"
+echo "------------------------"

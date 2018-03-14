@@ -1,0 +1,14 @@
+[Unit] 
+Description=RavenDB service 
+After=network.target 
+
+[Service] 
+ExecStart=${RAVENDB_HOME_DIR}/RavenDB/Server/Raven.Server --non-interactive 
+Restart=always 
+StandardOutput=syslog 
+StandardError=syslog 
+SyslogIdentifier=ravendb-service 
+User=${RAVENDB_USER}
+
+[Install] 
+WantedBy=multi-user.target 
