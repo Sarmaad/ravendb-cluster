@@ -31,11 +31,9 @@ RAVENDB_DATA_DIR="/home/ravendb/data"
 
 SERVER_URL=${args[0]}
 
-CERT_FILE=${args[1]}
+CERT_FILE_PATH=${args[1]}
+CERT_FILE=$RAVENDB_HOME_DIR/$(basename $CERT_FILE_PATH)
 CERT_PASS=${args[2]}
-
-# export these variables for the purpose of templates
-export RAVENDB_USER RAVENDB_HOME_DIR RAVENDB_DATA_DIR SERVER_URL CERT_FILE CERT_PASS
 
 echo "installing required system packages"
 apt-get -y --no-install-recommends install libunwind8 libicu55 libcurl3 ca-certificates
@@ -61,6 +59,15 @@ tar -xf $RAVENDB_HOME_DIR/$RAVENDB_DL_FILE -C $RAVENDB_HOME_DIR
 #remove downloaded package
 rm -f $RAVENDB_HOME_DIR/$RAVENDB_DL_FILE
 chown -R $RAVENDB_USER:$RAVENDB_GROUP $RAVENDB_HOME_DIR/RavenDB
+
+echo "copy certificate from $CERT_FILE_PATH to $CERT_FILE"
+cp $CERT_FILE_PATH $CERT_FILE
+chmod 0700 $CERT_FILE
+chown $RAVENDB_USER:$RAVENDB_GROUP $CERT_FILE
+
+
+# export these variables for the purpose of templates
+export RAVENDB_USER RAVENDB_HOME_DIR RAVENDB_DATA_DIR SERVER_URL CERT_FILE CERT_PASS
 
 echo "Creating the settings.json file (if not exists)"
 cat ../settings.json.template | envsubst > $RAVENDB_HOME_DIR/settings.json

@@ -1,5 +1,5 @@
 {
-  "ServerUrl": "https://${SERVER_URL}",
+  "ServerUrl": "https://${SERVER_URL}:8080",
   "Setup.Mode": "None",
   "DataDir": "${RAVENDB_DATA_DIR}",
   "Security.Certificate": {
