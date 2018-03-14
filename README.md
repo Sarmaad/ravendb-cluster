@@ -1,8 +1,8 @@
-# ravendb-cluster
+# RavenDB Cluster
 Easiest way to setup a RavenDB Cluster on Linux.
 
 ## Supported Distros:
-- Ubunto 16.x
+- Ubuntu 16.x
 
 ## How to use
 First, read the blog post and watch the video to see the process end to end. link coming
