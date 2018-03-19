@@ -21,7 +21,7 @@ if [ $# -ne 3 ]; then
 fi
 
 # configuration
-RAVENDB_DL_FILE="RavenDB-4.0.3-patch-40031-linux-x64.tar.bz2"
+RAVENDB_DL_FILE="RavenDB-4.0.3-patch-40033-linux-x64.tar.bz2"
 RAVENDB_DL="https://daily-builds.s3.amazonaws.com/$RAVENDB_DL_FILE"
 
 RAVENDB_USER="ravendb"
