@@ -5,7 +5,7 @@ Easiest way to setup a RavenDB Cluster on Linux.
 - Ubuntu 16.x
 
 ## How to use
-First, read the blog post and watch the video to see the process end to end. link coming
+First, read the blog post and watch the video to see the process end to end. [RavenDB 4.0 Cluster on Ubuntu with Digital Ocean](https://www.sarmaad.com/2018/03/setup-ravendb-4-0-cluster-using-ubuntu-on-digital-ocean/)
 
 ### tl;dr
 - upload your cert to box
